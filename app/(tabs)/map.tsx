@@ -63,46 +63,7 @@ export default function MapScreen() {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(20)).current;
   const buttonScale = useRef(new Animated.Value(0.9)).current;
-  
   const pulseAnim = useRef(new Animated.Value(0.3)).current;
-  
-  useEffect(() => {
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }),
-        Animated.timing(pulseAnim, {
-          toValue: 0.3,
-          duration: 1000,
-          useNativeDriver: true,
-        })
-      ])
-    ).start();
-  }, []);
-  
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.timing(translateY, {
-        toValue: 0,
-        duration: 500,
-        useNativeDriver: true,
-      }),
-      Animated.spring(buttonScale, {
-        toValue: 1,
-        friction: 5,
-        tension: 40,
-        useNativeDriver: true,
-      })
-    ]).start();
-  }, []);
   
   const incidents: Incident[] = [
     {
@@ -144,24 +105,102 @@ export default function MapScreen() {
     {
       id: '1',
       title: 'Полицейский участок №1',
-      address: 'ул. Абая, 45',
-      phone: '+7 (727) 254-12-34',
+      address: 'ул. Абая, 123',
+      phone: '+7 (777) 123-45-67',
       location: {
-        latitude: 43.2600,
-        longitude: 76.9140,
+        latitude: 43.238949,
+        longitude: 76.889709,
       },
     },
     {
       id: '2',
       title: 'Полицейский участок №2',
-      address: 'ул. Достык, 114',
-      phone: '+7 (727) 254-56-78',
+      address: 'пр. Достык, 456',
+      phone: '+7 (777) 765-43-21',
       location: {
-        latitude: 43.2500,
-        longitude: 76.9050,
+        latitude: 43.248949,
+        longitude: 76.899709,
+      },
+    },
+    {
+      id: '3',
+      title: 'Полицейский участок №3',
+      address: 'ул. Толе би, 789',
+      phone: '+7 (777) 987-65-43',
+      location: {
+        latitude: 43.228949,
+        longitude: 76.879709,
+      },
+    },
+    {
+      id: '4',
+      title: 'Центральный отдел полиции УП г. Караганды',
+      address: 'Терешковой, 36',
+      phone: '+7 (7212) 51‒06‒91',
+      location: {
+        latitude: 49.819,
+        longitude: 73.108498,
+      },
+    },
+    {
+      id: '5',
+      title: 'Михайловский отдел полиции УП г. Караганды',
+      address: 'Крылова, 10',
+      phone: '+7 (7212) 40‒78‒20',
+      location: {
+        latitude: 49.813389,
+        longitude: 73.143219,
+      },
+    },
+    {
+      id: '6',
+      title: 'Юго-Восточный отдел полиции УП г. Караганды',
+      address: 'Гапеева, 7',
+      phone: '+7 (7212) 40‒78‒70',
+      location: {
+        latitude: 49.769293,
+        longitude: 73.156700,
       },
     },
   ];
+  
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 0.3,
+          duration: 1000,
+          useNativeDriver: true,
+        })
+      ])
+    ).start();
+  }, []);
+  
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.spring(buttonScale, {
+        toValue: 1,
+        friction: 5,
+        tension: 40,
+        useNativeDriver: true,
+      })
+    ]).start();
+  }, []);
   
   useEffect(() => {
     (async () => {

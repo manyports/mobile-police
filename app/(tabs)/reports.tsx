@@ -22,7 +22,103 @@ interface Report {
   status: 'pending' | 'in_progress' | 'resolved';
   date: string;
   type: string;
+  fullName: string;
+  address: string;
+  iin: string;
 }
+
+const ReportCard = ({ report, index, colors, getStatusText, getStatusColor }: {
+  report: Report;
+  index: number;
+  colors: any;
+  getStatusText: (status: Report['status']) => string;
+  getStatusColor: (status: Report['status']) => string;
+}) => {
+  const itemAnimationValue = useRef(new Animated.Value(0)).current;
+  
+  useEffect(() => {
+    Animated.timing(itemAnimationValue, {
+      toValue: 1,
+      duration: 400,
+      delay: index * 100,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+  
+  return (
+    <Animated.View
+      style={{
+        opacity: itemAnimationValue,
+        transform: [{ 
+          translateY: itemAnimationValue.interpolate({
+            inputRange: [0, 1],
+            outputRange: [20, 0]
+          })
+        }]
+      }}
+    >
+      <View 
+        style={[
+          styles.reportCard, 
+          { 
+            backgroundColor: colors.cardBg,
+            borderColor: colors.border
+          }
+        ]}
+      >
+        <View style={styles.reportHeader}>
+          <View style={styles.reportTitleContainer}>
+            <Text style={[styles.reportTitle, { color: colors.text }]}>
+              {report.title}
+            </Text>
+            <Text style={[styles.reportDate, { color: colors.muted }]}>
+              {report.date}
+            </Text>
+          </View>
+          <View 
+            style={[
+              styles.statusBadge, 
+              { backgroundColor: getStatusColor(report.status) + '20' }
+            ]}
+          >
+            <Text 
+              style={[
+                styles.statusText, 
+                { color: getStatusColor(report.status) }
+              ]}
+            >
+              {getStatusText(report.status)}
+            </Text>
+          </View>
+        </View>
+        
+        <Text style={[styles.reportType, { color: colors.muted }]}>
+          {report.type}
+        </Text>
+        
+        <Text style={[styles.reportDescription, { color: colors.text }]}>
+          {report.description}
+        </Text>
+        
+        <Pressable
+          style={[styles.detailsButton, { borderColor: colors.border }]}
+          onPress={() => {
+            Alert.alert(
+              'Информация по обращению',
+              `Номер: ${report.id}\nСтатус: ${getStatusText(report.status)}\nДата: ${report.date}\nТип: ${report.type}`,
+              [{ text: 'OK' }]
+            );
+          }}
+        >
+          <Text style={[styles.detailsButtonText, { color: colors.tint }]}>
+            Подробнее
+          </Text>
+          <MaterialIcons name="chevron-right" size={16} color={colors.tint} />
+        </Pressable>
+      </View>
+    </Animated.View>
+  );
+};
 
 export default function ReportsScreen() {
   const colors = Colors.light;
@@ -34,7 +130,10 @@ export default function ReportsScreen() {
       description: 'На перекрестке ул. Абая и Достык поврежден дорожный знак пешеходного перехода',
       status: 'in_progress',
       date: '15.05.2023',
-      type: 'Инфраструктура'
+      type: 'Инфраструктура',
+      fullName: 'Иванов Иван Иванович',
+      address: 'г. Алматы, ул. Абая, 123',
+      iin: '123456789012'
     },
     {
       id: '2',
@@ -42,7 +141,10 @@ export default function ReportsScreen() {
       description: 'Постоянный шум после 23:00 с квартиры этажом выше',
       status: 'pending',
       date: '20.05.2023',
-      type: 'Нарушение порядка'
+      type: 'Нарушение порядка',
+      fullName: '',
+      address: '',
+      iin: ''
     },
     {
       id: '3',
@@ -50,13 +152,19 @@ export default function ReportsScreen() {
       description: 'Неизвестные люди регулярно собираются в заброшенном здании по ул. Сатпаева, 25',
       status: 'resolved',
       date: '10.04.2023',
-      type: 'Безопасность'
+      type: 'Безопасность',
+      fullName: '',
+      address: '',
+      iin: ''
     }
   ]);
   
   const [newReportTitle, setNewReportTitle] = useState('');
   const [newReportDescription, setNewReportDescription] = useState('');
   const [newReportType, setNewReportType] = useState('Выберите тип');
+  const [newReportFullName, setNewReportFullName] = useState('');
+  const [newReportAddress, setNewReportAddress] = useState('');
+  const [newReportIIN, setNewReportIIN] = useState('');
   const [showTypeSelector, setShowTypeSelector] = useState(false);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
@@ -97,6 +205,21 @@ export default function ReportsScreen() {
       return;
     }
     
+    if (!newReportFullName.trim()) {
+      Alert.alert('Ошибка', 'Пожалуйста, введите ФИО');
+      return;
+    }
+
+    if (!newReportAddress.trim()) {
+      Alert.alert('Ошибка', 'Пожалуйста, введите адрес проживания');
+      return;
+    }
+
+    if (!newReportIIN.trim()) {
+      Alert.alert('Ошибка', 'Пожалуйста, введите ИИН');
+      return;
+    }
+
     if (newReportType === 'Выберите тип') {
       Alert.alert('Ошибка', 'Пожалуйста, выберите тип обращения');
       return;
@@ -108,13 +231,19 @@ export default function ReportsScreen() {
       description: newReportDescription,
       status: 'pending',
       date: new Date().toLocaleDateString('ru-RU'),
-      type: newReportType
+      type: newReportType,
+      fullName: newReportFullName,
+      address: newReportAddress,
+      iin: newReportIIN
     };
     
     setReports([newReport, ...reports]);
     setNewReportTitle('');
     setNewReportDescription('');
     setNewReportType('Выберите тип');
+    setNewReportFullName('');
+    setNewReportAddress('');
+    setNewReportIIN('');
     setActiveTab('my');
     
     Alert.alert(
@@ -163,93 +292,16 @@ export default function ReportsScreen() {
         contentContainerStyle={styles.reportsContent}
         showsVerticalScrollIndicator={false}
       >
-        {reports.map((report, index) => {
-          const itemAnimationValue = useRef(new Animated.Value(0)).current;
-          
-          useEffect(() => {
-            Animated.timing(itemAnimationValue, {
-              toValue: 1,
-              duration: 400,
-              delay: index * 100,
-              useNativeDriver: true,
-            }).start();
-          }, []);
-          
-          return (
-            <Animated.View
-              key={report.id}
-              style={{
-                opacity: itemAnimationValue,
-                transform: [{ 
-                  translateY: itemAnimationValue.interpolate({
-                    inputRange: [0, 1],
-                    outputRange: [20, 0]
-                  })
-                }]
-              }}
-            >
-              <View 
-                style={[
-                  styles.reportCard, 
-                  { 
-                    backgroundColor: colors.cardBg,
-                    borderColor: colors.border
-                  }
-                ]}
-              >
-                <View style={styles.reportHeader}>
-                  <View style={styles.reportTitleContainer}>
-                    <Text style={[styles.reportTitle, { color: colors.text }]}>
-                      {report.title}
-                    </Text>
-                    <Text style={[styles.reportDate, { color: colors.muted }]}>
-                      {report.date}
-                    </Text>
-                  </View>
-                  <View 
-                    style={[
-                      styles.statusBadge, 
-                      { backgroundColor: getStatusColor(report.status) + '20' }
-                    ]}
-                  >
-                    <Text 
-                      style={[
-                        styles.statusText, 
-                        { color: getStatusColor(report.status) }
-                      ]}
-                    >
-                      {getStatusText(report.status)}
-                    </Text>
-                  </View>
-                </View>
-                
-                <Text style={[styles.reportType, { color: colors.muted }]}>
-                  {report.type}
-                </Text>
-                
-                <Text style={[styles.reportDescription, { color: colors.text }]}>
-                  {report.description}
-                </Text>
-                
-                <Pressable
-                  style={[styles.detailsButton, { borderColor: colors.border }]}
-                  onPress={() => {
-                    Alert.alert(
-                      'Информация по обращению',
-                      `Номер: ${report.id}\nСтатус: ${getStatusText(report.status)}\nДата: ${report.date}\nТип: ${report.type}`,
-                      [{ text: 'OK' }]
-                    );
-                  }}
-                >
-                  <Text style={[styles.detailsButtonText, { color: colors.tint }]}>
-                    Подробнее
-                  </Text>
-                  <MaterialIcons name="chevron-right" size={16} color={colors.tint} />
-                </Pressable>
-              </View>
-            </Animated.View>
-          );
-        })}
+        {reports.map((report, index) => (
+          <ReportCard
+            key={report.id}
+            report={report}
+            index={index}
+            colors={colors}
+            getStatusText={getStatusText}
+            getStatusColor={getStatusColor}
+          />
+        ))}
       </ScrollView>
     );
   };
@@ -264,6 +316,68 @@ export default function ReportsScreen() {
           contentContainerStyle={styles.formContent}
           showsVerticalScrollIndicator={false}
         >
+          <View style={styles.formSection}>
+            <Text style={[styles.formLabel, { color: colors.text }]}>
+              ФИО
+            </Text>
+            <TextInput
+              style={[
+                styles.textInput, 
+                { 
+                  backgroundColor: colors.subtleBg,
+                  borderColor: colors.border,
+                  color: colors.text
+                }
+              ]}
+              placeholder="Введите ваше ФИО"
+              placeholderTextColor={colors.muted}
+              value={newReportFullName}
+              onChangeText={setNewReportFullName}
+            />
+          </View>
+
+          <View style={styles.formSection}>
+            <Text style={[styles.formLabel, { color: colors.text }]}>
+              Адрес проживания
+            </Text>
+            <TextInput
+              style={[
+                styles.textInput, 
+                { 
+                  backgroundColor: colors.subtleBg,
+                  borderColor: colors.border,
+                  color: colors.text
+                }
+              ]}
+              placeholder="Введите ваш адрес проживания"
+              placeholderTextColor={colors.muted}
+              value={newReportAddress}
+              onChangeText={setNewReportAddress}
+            />
+          </View>
+
+          <View style={styles.formSection}>
+            <Text style={[styles.formLabel, { color: colors.text }]}>
+              ИИН
+            </Text>
+            <TextInput
+              style={[
+                styles.textInput, 
+                { 
+                  backgroundColor: colors.subtleBg,
+                  borderColor: colors.border,
+                  color: colors.text
+                }
+              ]}
+              placeholder="Введите ваш ИИН"
+              placeholderTextColor={colors.muted}
+              value={newReportIIN}
+              onChangeText={setNewReportIIN}
+              keyboardType="numeric"
+              maxLength={12}
+            />
+          </View>
+
           <View style={styles.formSection}>
             <Text style={[styles.formLabel, { color: colors.text }]}>
               Тема обращения
@@ -384,13 +498,6 @@ export default function ReportsScreen() {
               onChangeText={setNewReportDescription}
             />
           </View>
-          
-          <Pressable
-            style={[styles.submitButton, { backgroundColor: colors.tint }]}
-            onPress={handleSubmitReport}
-          >
-            <Text style={styles.submitButtonText}>Отправить обращение</Text>
-          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     );
@@ -462,6 +569,16 @@ export default function ReportsScreen() {
       </View>
       
       {activeTab === 'my' ? renderMyReports() : renderNewReportForm()}
+
+      {activeTab === 'new' && (
+        <Pressable
+          style={[styles.footerButton, { backgroundColor: colors.tint }]}
+          onPress={handleSubmitReport}
+        >
+          <MaterialIcons name="send" size={24} color="white" />
+          <Text style={styles.footerButtonText}>Отправить обращение</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
@@ -643,16 +760,31 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     fontSize: 16,
   },
-  submitButton: {
-    paddingVertical: 14,
-    borderRadius: 8,
+  footerButton: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 16,
-    marginBottom: 40,
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderTopWidth: 1,
+    borderTopColor: '#EEEEEE',
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: -2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  submitButtonText: {
+  footerButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+    marginLeft: 8,
   },
 }); 
