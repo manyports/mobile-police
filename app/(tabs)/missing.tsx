@@ -311,22 +311,24 @@ export default function MissingPersonsScreen() {
         )}
       </ScrollView>
       
-      <Pressable
-        style={[styles.reportButton, { backgroundColor: colors.tint }]}
-        onPress={() => {
-          Alert.alert(
-            'Сообщить о пропавшем человеке',
-            'Для подачи заявления о пропаже человека вы можете обратиться в ближайший отдел полиции или позвонить по номеру 102.',
-            [
-              { text: 'Отмена', style: 'cancel' },
-              { text: 'Позвонить 102' },
-            ]
-          );
-        }}
-      >
-        <MaterialIcons name="add" size={24} color="white" />
-        <Text style={styles.reportButtonText}>Сообщить о пропаже</Text>
-      </Pressable>
+      <View style={styles.footer}>
+        <Pressable
+          style={[styles.reportButton, { backgroundColor: colors.tint }]}
+          onPress={() => {
+            Alert.alert(
+              'Сообщить о пропавшем человеке',
+              'Для подачи заявления о пропаже человека вы можете обратиться в ближайший отдел полиции или позвонить по номеру 102.',
+              [
+                { text: 'Отмена', style: 'cancel' },
+                { text: 'Позвонить 102' },
+              ]
+            );
+          }}
+        >
+          <MaterialIcons name="add" size={24} color="white" />
+          <Text style={styles.reportButtonText}>Сообщить о пропаже</Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -494,15 +496,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-  reportButton: {
+  footer: {
+    width: '100%',
+    padding: 16,
+    backgroundColor: 'transparent',
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 100 : 70,
-    right: 16,
+    bottom: 0,
+  },
+  reportButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 24,
+    justifyContent: 'center',
+    paddingVertical: 16,
+    borderRadius: 12,
+    width: '100%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
