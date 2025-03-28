@@ -36,6 +36,12 @@ const MORE_MENU_ITEMS = [
     icon: 'block',
     desc: 'База данных мошенников'
   },
+  {
+    name: 'notifications',
+    title: 'Уведомления',
+    icon: 'notifications',
+    desc: 'Оповещения и важная информация'
+  },
   { 
     name: 'profile', 
     title: 'Профиль', 
@@ -228,6 +234,14 @@ export default function TabLayout() {
             title: 'Мошенники',
             tabBarButton: () => null,
             tabBarIcon: ({ color, size }) => <MaterialIcons name="block" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="notifications"
+          options={{
+            title: 'Уведомления',
+            tabBarButton: () => null,
+            tabBarIcon: ({ color, size }) => <MaterialIcons name="notifications" size={size} color={color} />,
           }}
         />
         <Tabs.Screen
