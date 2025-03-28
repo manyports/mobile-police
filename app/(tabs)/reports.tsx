@@ -571,13 +571,15 @@ export default function ReportsScreen() {
       {activeTab === 'my' ? renderMyReports() : renderNewReportForm()}
 
       {activeTab === 'new' && (
-        <Pressable
-          style={[styles.footerButton, { backgroundColor: colors.tint }]}
-          onPress={handleSubmitReport}
-        >
-          <MaterialIcons name="send" size={24} color="white" />
-          <Text style={styles.footerButtonText}>Отправить обращение</Text>
-        </Pressable>
+        <View style={[styles.footer, { backgroundColor: colors.background }]}>
+          <Pressable
+            style={[styles.footerButton, { backgroundColor: colors.tint }]}
+            onPress={handleSubmitReport}
+          >
+            <MaterialIcons name="send" size={24} color="white" />
+            <Text style={styles.footerButtonText}>Отправить обращение</Text>
+          </Pressable>
+        </View>
       )}
     </View>
   );
@@ -760,31 +762,38 @@ const styles = StyleSheet.create({
   dropdownItemText: {
     fontSize: 16,
   },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
   footerButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
     paddingHorizontal: 24,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopWidth: 1,
-    borderTopColor: '#EEEEEE',
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: -2,
-    },
-    shadowOpacity: 0.1,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 4,
   },
   footerButtonText: {
     color: 'white',
-    fontSize: 16,
     fontWeight: '600',
+    fontSize: 16,
     marginLeft: 8,
   },
 }); 
