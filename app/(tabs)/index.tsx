@@ -112,7 +112,7 @@ export default function HomeScreen() {
                 </Pressable>
               </Link>
               
-              <Link href="/profile" asChild>
+              <Link href="/notifications" asChild>
                 <Pressable style={styles.iconButton}>
                   <View style={styles.notificationBadge}>
                     <Text style={styles.notificationBadgeText}>2</Text>
