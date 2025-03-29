@@ -24,6 +24,12 @@ const MORE_MENU_ITEMS = [
     icon: 'description',
     desc: 'Подача и отслеживание обращений'
   },
+  {
+    name: 'silent-report',
+    title: 'Тихий репорт',
+    icon: 'record-voice-over',
+    desc: 'Сообщить о происшествии без звонка'
+  },
   { 
     name: 'missing', 
     title: 'Розыск', 
@@ -212,6 +218,14 @@ export default function TabLayout() {
             title: 'Обращения',
             tabBarButton: () => null,
             tabBarIcon: ({ color, size }) => <MaterialIcons name="description" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="silent-report"
+          options={{
+            title: 'Тихий репорт',
+            tabBarButton: () => null,
+            tabBarIcon: ({ color, size }) => <MaterialIcons name="record-voice-over" size={size} color={color} />,
           }}
         />
         <Tabs.Screen
