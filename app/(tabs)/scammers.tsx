@@ -549,29 +549,31 @@ export default function ScammersScreen() {
         )}
       </ScrollView>
       
-      <Pressable
-        style={[styles.reportNewButton, { backgroundColor: colors.tint }]}
-        onPress={() => {
-          Alert.alert(
-            activeTab === 'schemes' 
-              ? 'Сообщить о новой схеме' 
-              : 'Сообщить о мошеннике',
-            'Для подачи заявления о мошенничестве или сообщения о новой схеме обмана, обратитесь в ближайший отдел полиции или позвоните по номеру 102.',
-            [
-              { text: 'Отмена', style: 'cancel' },
-              { 
-                text: 'Позвонить 102',
-                onPress: () => Linking.openURL('tel:102')
-              }
-            ]
-          );
-        }}
-      >
-        <MaterialIcons name="add" size={24} color="white" />
-        <Text style={styles.reportNewButtonText}>
-          {activeTab === 'schemes' ? 'Сообщить о схеме' : 'Сообщить о мошеннике'}
-        </Text>
-      </Pressable>
+      <View style={[styles.footer, { backgroundColor: colors.background }]}>
+        <Pressable
+          style={[styles.reportNewButton, { backgroundColor: colors.tint }]}
+          onPress={() => {
+            Alert.alert(
+              activeTab === 'schemes' 
+                ? 'Сообщить о новой схеме' 
+                : 'Сообщить о мошеннике',
+              'Для подачи заявления о мошенничестве или сообщения о новой схеме обмана, обратитесь в ближайший отдел полиции или позвоните по номеру 102.',
+              [
+                { text: 'Отмена', style: 'cancel' },
+                { 
+                  text: 'Позвонить 102',
+                  onPress: () => Linking.openURL('tel:102')
+                }
+              ]
+            );
+          }}
+        >
+          <MaterialIcons name="add" size={24} color="white" />
+          <Text style={styles.reportNewButtonText}>
+            {activeTab === 'schemes' ? 'Сообщить о схеме' : 'Сообщить о мошеннике'}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -632,7 +634,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     paddingHorizontal: 16,
-    paddingBottom: 100,
+    paddingBottom: 80,
   },
   card: {
     borderRadius: 12,
@@ -765,15 +767,28 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
   },
-  reportNewButton: {
+  footer: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 100 : 70,
-    right: 16,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: 'white',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E5E5',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
+  },
+  reportNewButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 24,
+    justifyContent: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 24,
+    borderRadius: 8,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,

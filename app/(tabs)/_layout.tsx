@@ -42,6 +42,12 @@ const MORE_MENU_ITEMS = [
     icon: 'block',
     desc: 'База данных мошенников'
   },
+  {
+    name: 'notifications',
+    title: 'Уведомления',
+    icon: 'notifications',
+    desc: 'Оповещения и важная информация'
+  },
   { 
     name: 'profile', 
     title: 'Профиль', 
@@ -62,7 +68,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
         borderTopColor: colors.border,
       }
     ]}>
-      {state.routes.slice(0, 4).map((route, index) => {
+      {state.routes.slice(0, 5).map((route, index) => {
         const { options } = descriptors[route.key];
         const label = options.title || route.name;
         const isFocused = state.index === index;
@@ -72,6 +78,8 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           icon = <MaterialIcons name="home" size={26} color={isFocused ? colors.tint : colors.tabIconDefault} />;
         } else if (route.name === 'map') {
           icon = <MaterialIcons name="map" size={26} color={isFocused ? colors.tint : colors.tabIconDefault} />;
+        } else if (route.name === 'chats') {
+          icon = <MaterialIcons name="chat" size={26} color={isFocused ? colors.tint : colors.tabIconDefault} />;
         } else if (route.name === 'emergency') {
           icon = <MaterialIcons name="warning" size={26} color={colors.danger} />;
         } else if (route.name === 'more') {
@@ -90,7 +98,7 @@ function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           }
         };
       
-        const itemWidth = width / 4;
+        const itemWidth = width / 5;
         const left = index * itemWidth;
 
         return (
@@ -194,6 +202,12 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
+          name="chats"
+          options={{
+            title: 'Чаты',
+          }}
+        />
+        <Tabs.Screen
           name="emergency"
           options={{
             title: 'SOS',
@@ -242,6 +256,14 @@ export default function TabLayout() {
             title: 'Мошенники',
             tabBarButton: () => null,
             tabBarIcon: ({ color, size }) => <MaterialIcons name="block" size={size} color={color} />,
+          }}
+        />
+        <Tabs.Screen
+          name="notifications"
+          options={{
+            title: 'Уведомления',
+            tabBarButton: () => null,
+            tabBarIcon: ({ color, size }) => <MaterialIcons name="notifications" size={size} color={color} />,
           }}
         />
         <Tabs.Screen
