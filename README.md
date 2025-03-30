@@ -1,50 +1,119 @@
-# Welcome to your Expo app 👋
+# Police 102 Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native mobile application that connects citizens with police services, enables emergency reporting, and provides safety resources.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Emergency Reporting**: Quick access to emergency services with location tracking
+- **Map View**: Visualize nearby police stations and reported incidents
+- **Silent Reports**: Submit discreet reports in unsafe situations
+- **Missing Persons**: Report and view information about missing persons
+- **Scam Alerts**: Access information about common scams and report suspicious activity
+- **Chat System**: Direct communication with police officers
+- **User Profiles**: Manage personal information and report history
+- **Notifications**: Receive updates on reports and safety alerts
 
+## Tech Stack
+
+- React Native with Expo framework
+- TypeScript for type safety
+- Expo Router for navigation
+- React Native Maps for location features
+- Expo Location for device positioning
+- Axios for API requests
+- Expo Notifications for push notifications
+
+## Prerequisites
+
+- Node.js (LTS version recommended)
+- npm or yarn package manager
+- Expo CLI
+- iOS Simulator or Android Emulator (optional for local testing)
+- Expo Go app on physical device (for testing without emulators)
+
+## Installation
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/yourusername/police102-mobile.git
+   cd police102-mobile
+   ```
+
+2. Install dependencies
    ```bash
    npm install
+   # or
+   yarn install
    ```
 
-2. Start the app
+3. Set up environment variables
+   - Create `.env` file based on `.env.example`
+   - Configure API keys for Google Maps
 
-   ```bash
-    npx expo start
-   ```
+## Running the App
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
+Start the development server:
 ```bash
-npm run reset-project
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+This will display a QR code and options to run the app on:
+- iOS Simulator
+- Android Emulator
+- Physical device via Expo Go app
 
-## Learn more
+## Development Commands
 
-To learn more about developing your project with Expo, look at the following resources:
+```bash
+# Start the development server
+npm start
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+# Run on Android
+npm run android
 
-## Join the community
+# Run on iOS
+npm run ios
 
-Join our community of developers creating universal apps.
+# Run on web
+npm run web
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+# Run tests
+npm test
+
+# Lint code
+npm run lint
+```
+
+## Project Structure
+
+- `/app`: Main application code with file-based routing
+  - `/(tabs)`: Main tab screens (home, emergency, map, etc.)
+  - `/modals`: Modal screens
+  - `/models`: Data models
+  - `/services`: Service integrations
+- `/components`: Reusable UI components
+- `/context`: React context providers
+- `/constants`: App constants and configuration
+- `/hooks`: Custom React hooks
+- `/assets`: Images, fonts, and other static assets
+
+## Building for Production
+
+1. Configure app.json for production builds
+2. Generate builds using Expo EAS:
+   ```bash
+   npx eas build --platform ios
+   npx eas build --platform android
+   ```
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+## Contact
+
+Your Organization - [website](https://yourorganization.com) - email@example.com

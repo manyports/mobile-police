@@ -10,38 +10,140 @@ import {
   Platform, 
   Animated,
   Alert,
-  Linking
+  Linking,
+  ActivityIndicator
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import { Colors } from '@/constants/Colors';
+import api from '@/app/services/api';
+import { useRouter } from 'expo-router';
+
+// Get API services 
+const { scammersApi, schemesApi } = api;
 
 interface ScammerProfile {
-  id: string;
+  id?: string;
+  _id?: string;
   name: string;
   type: 'phone' | 'online' | 'financial' | 'other';
   description: string;
   contactInfo: string;
   additionalInfo?: string;
   dateAdded: string;
+  reportCount?: number;
+  verified?: boolean;
 }
 
 interface ScamScheme {
-  id: string;
+  id?: string;
+  _id?: string;
   title: string;
   description: string;
   warningSign: string[];
   howToAvoid: string[];
+  dateAdded?: string;
+  reportCount?: number;
+  verified?: boolean;
 }
+
+// Helper function to format dates coming from MongoDB
+const formatDate = (dateString: string): string => {
+  if (!dateString) return '';
+  
+  // Check if it's already in DD.MM.YYYY format
+  if (/^\d{2}\.\d{2}\.\d{4}$/.test(dateString)) {
+    return dateString;
+  }
+  
+  // Convert from ISO date to DD.MM.YYYY
+  try {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}.${month}.${year}`;
+  } catch (err) {
+    console.error('Error parsing date:', err);
+    return dateString; // Return original if parsing fails
+  }
+};
 
 export default function ScammersScreen() {
   const colors = Colors.light;
   const [activeTab, setActiveTab] = useState('schemes');
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+  
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  const [scammers, setScammers] = useState<ScammerProfile[]>([]);
+  const [scamSchemes, setScamSchemes] = useState<ScamScheme[]>([]);
   
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(20)).current;
+  
+  const [itemAnimationValues, setItemAnimationValues] = useState<{[key: string]: Animated.Value}>({});
+  
+  const [expandedCards, setExpandedCards] = useState<{[key: string]: boolean}>({});
+  
+  // Effect to fetch data based on active tab
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        if (activeTab === 'scammers') {
+          const response = await scammersApi.getAllScammers();
+          console.log('Scammers API response:', response); // Debug log
+          
+          // Format data from MongoDB
+          const formattedScammers = response.map((scammer: any) => ({
+            ...scammer,
+            id: scammer._id,
+            // Format date if it's an ISO string
+            dateAdded: formatDate(scammer.dateAdded)
+          }));
+          
+          setScammers(formattedScammers);
+        } else {
+          const response = await schemesApi.getAllSchemes();
+          console.log('Schemes API response:', response); // Debug log
+          
+          // Format data from MongoDB
+          const formattedSchemes = response.map((scheme: any) => ({
+            ...scheme,
+            id: scheme._id || scheme.id,
+            // Format date if present and it's an ISO string
+            dateAdded: scheme.dateAdded ? formatDate(scheme.dateAdded) : undefined
+          }));
+          
+          setScamSchemes(formattedSchemes);
+        }
+      } catch (err: any) {
+        console.error(`Error fetching ${activeTab}:`, err);
+        
+        let errorMessage = `Не удалось загрузить данные. ${err.message || 'Пожалуйста, повторите попытку позже.'}`;
+        
+        if (err.response) {
+          errorMessage = `Сервер вернул ошибку: ${err.response.status} - ${err.response.statusText || err.message}`;
+          console.error('Error response data:', err.response.data);
+        } else if (err.request) {
+          errorMessage = 'Сервер не отвечает. Проверьте подключение к интернету.';
+          console.error('Request that caused error:', err.request);
+        }
+        
+        setError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [activeTab]);
   
   useEffect(() => {
     Animated.parallel([
@@ -58,191 +160,129 @@ export default function ScammersScreen() {
     ]).start();
   }, []);
   
-  const scammers: ScammerProfile[] = [
-    {
-      id: '1',
-      name: 'ТОО "КазИнвест"',
-      type: 'financial',
-      description: 'Предлагают быстрый доход от инвестиций в "эксклюзивный" проект. Обещают доходность 30% в месяц.',
-      contactInfo: '+7 (777) 123-4567, invest@kazinvest-fake.kz',
-      additionalInfo: 'Используют поддельные документы с государственными печатями.',
-      dateAdded: '10.05.2023'
-    },
-    {
-      id: '2',
-      name: 'Аскар Мамедов',
-      type: 'online',
-      description: 'Выдает себя за сотрудника банка и просит данные карт для "проверки безопасности".',
-      contactInfo: '+7 (702) 987-6543, различные аккаунты в социальных сетях',
-      dateAdded: '15.04.2023'
-    },
-    {
-      id: '3',
-      name: '+7 (708) 555-1234',
-      type: 'phone',
-      description: 'Звонят с сообщением о блокировке банковской карты и просят провести операцию через банкомат.',
-      contactInfo: '+7 (708) 555-1234',
-      dateAdded: '02.05.2023'
-    },
-    {
-      id: '4',
-      name: 'support@nationalbank-kz.com',
-      type: 'online',
-      description: 'Фишинговые письма от имени Национального Банка с требованием обновить данные.',
-      contactInfo: 'support@nationalbank-kz.com',
-      additionalInfo: 'Настоящий домен нацбанка - nationalbank.kz',
-      dateAdded: '20.04.2023'
-    },
-    {
-      id: '5',
-      name: 'ИП "Курьерская доставка"',
-      type: 'other',
-      description: 'Берут предоплату за доставку несуществующих товаров.',
-      contactInfo: '+7 (747) 456-7890, delivery@express-fake.kz',
-      dateAdded: '05.05.2023'
+  // Reset expanded cards when active tab changes
+  useEffect(() => {
+    setExpandedCards({});
+  }, [activeTab]);
+  
+  // Set up animation values for new items
+  useEffect(() => {
+    const newAnimationValues: {[key: string]: Animated.Value} = {};
+    const items = activeTab === 'schemes' ? scamSchemes : scammers;
+    
+    // Create animation values for all visible items
+    items.forEach((item) => {
+      const itemId = item._id || item.id;
+      if (itemId && !itemAnimationValues[itemId]) {
+        newAnimationValues[itemId] = new Animated.Value(0);
+      }
+    });
+    
+    // Merge with existing animation values
+    if (Object.keys(newAnimationValues).length > 0) {
+      setItemAnimationValues(prev => ({
+        ...prev,
+        ...newAnimationValues
+      }));
     }
-  ];
+    
+    // Trigger animations sequentially after a short delay
+    setTimeout(() => {
+      items.forEach((item, index) => {
+        const itemId = item._id || item.id;
+        if (itemId && (itemAnimationValues[itemId] || newAnimationValues[itemId])) {
+          const animValue = itemAnimationValues[itemId] || newAnimationValues[itemId];
+          Animated.timing(animValue, {
+            toValue: 1,
+            duration: 300,
+            delay: index * 50,
+            useNativeDriver: true,
+          }).start();
+        }
+      });
+    }, 100);
+  }, [scammers, scamSchemes, activeTab]);
+
+  // Safe filtering with null checks for scammers
+  const filteredScammers = scammers.filter(scammer => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      (scammer.name?.toLowerCase().includes(query) || false) ||
+      (scammer.description?.toLowerCase().includes(query) || false) ||
+      (scammer.contactInfo?.toLowerCase().includes(query) || false) ||
+      (scammer.additionalInfo?.toLowerCase().includes(query) || false) ||
+      (scammer.type?.toLowerCase().includes(query) || false)
+    );
+  });
   
-  const scamSchemes: ScamScheme[] = [
-    {
-      id: '1',
-      title: 'Звонок из "службы безопасности банка"',
-      description: 'Мошенники звонят и представляются сотрудниками службы безопасности банка. Сообщают о подозрительной операции и под предлогом защиты средств выманивают данные карты, коды из СМС или просят перевести деньги на "безопасный счет".',
-      warningSign: [
-        'Просьба сообщить полные данные карты',
-        'Требование назвать код из СМС или пароль',
-        'Создание атмосферы срочности и паники',
-        'Запрет на обращение напрямую в банк'
-      ],
-      howToAvoid: [
-        'Всегда перезванивайте в банк по официальному номеру с сайта или карты',
-        'Никогда не сообщайте CVV-код, полный номер карты или коды из СМС',
-        'Помните, что настоящие сотрудники банка никогда не запрашивают пароли'
-      ]
-    },
-    {
-      id: '2',
-      title: 'Фальшивые интернет-магазины',
-      description: 'Мошенники создают поддельные сайты интернет-магазинов с привлекательными ценами. После оплаты товар не доставляется, а сайт исчезает.',
-      warningSign: [
-        'Подозрительно низкие цены',
-        'Отсутствие контактной информации',
-        'Требование предоплаты на карту физлица',
-        'Ошибки на сайте, некачественные фото товаров'
-      ],
-      howToAvoid: [
-        'Проверяйте отзывы о магазине на независимых ресурсах',
-        'Сравнивайте домен с официальным',
-        'Предпочитайте оплату при получении или через надежные платежные системы',
-        'Изучите дату регистрации домена'
-      ]
-    },
-    {
-      id: '3',
-      title: 'Инвестиционные пирамиды',
-      description: 'Схемы, обещающие необычайно высокую доходность. Используют деньги новых инвесторов для выплат старым, пока система не рухнет.',
-      warningSign: [
-        'Гарантия высокого дохода без риска',
-        'Обещание доходности выше рыночной (от 15% в месяц)',
-        'Отсутствие прозрачной информации о компании',
-        'Системы с необходимостью приглашения новых участников'
-      ],
-      howToAvoid: [
-        'Проверяйте наличие лицензии на финансовую деятельность',
-        'Не доверяйте обещаниям гарантированной доходности',
-        'Изучайте финансовую модель компании',
-        'Проверяйте информацию в реестре юридических лиц'
-      ]
-    },
-    {
-      id: '4',
-      title: 'Фишинговые сообщения',
-      description: 'Поддельные электронные письма или сообщения, имитирующие коммуникацию от банков, госорганов или известных сервисов, с целью получить конфиденциальные данные.',
-      warningSign: [
-        'Сообщения о блокировке аккаунта или проблемах с безопасностью',
-        'Ссылки на сайты с похожими, но не идентичными адресами',
-        'Требование срочно обновить данные или войти в личный кабинет',
-        'Орфографические и грамматические ошибки'
-      ],
-      howToAvoid: [
-        'Проверяйте адрес отправителя письма',
-        'Не переходите по ссылкам из подозрительных писем',
-        'Вводите адреса сайтов вручную в браузере',
-        'Используйте двухфакторную аутентификацию'
-      ]
-    },
-    {
-      id: '5',
-      title: 'Мошенничество в сфере аренды жилья',
-      description: 'Мошенники размещают объявления о сдаче несуществующих квартир или квартир, которыми не владеют, и требуют предоплату.',
-      warningSign: [
-        'Цена значительно ниже рыночной',
-        'Отказ от личной встречи или показа квартиры',
-        'Требование предоплаты до заключения договора',
-        'Отсутствие документов на собственность'
-      ],
-      howToAvoid: [
-        'Всегда осматривайте жилье лично перед оплатой',
-        'Проверяйте документы на собственность',
-        'Заключайте официальный договор аренды',
-        'Не переводите деньги до подписания документов'
-      ]
+  // Safe filtering with null checks for schemes
+  const filteredSchemes = scamSchemes.filter(scheme => {
+    if (!searchQuery) return true;
+    const query = searchQuery.toLowerCase();
+    
+    // Search in title and description
+    const inTitle = scheme.title?.toLowerCase().includes(query) || false;
+    const inDesc = scheme.description?.toLowerCase().includes(query) || false;
+    
+    // Search in warning signs
+    const inWarnings = scheme.warningSign?.some(sign => 
+      sign.toLowerCase().includes(query)
+    ) || false;
+    
+    // Search in how to avoid tips
+    const inTips = scheme.howToAvoid?.some(tip => 
+      tip.toLowerCase().includes(query)
+    ) || false;
+    
+    return inTitle || inDesc || inWarnings || inTips;
+  });
+  
+  // Handle card expansion toggle
+  const toggleCardExpanded = (id: string) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
+  const getTypeIcon = (type: ScammerProfile['type']) => {
+    switch (type) {
+      case 'phone': return 'phone';
+      case 'online': return 'computer';
+      case 'financial': return 'attach-money';
+      default: return 'warning';
     }
-  ];
+  };
   
-  const filteredScammers = scammers.filter(scammer => 
-    scammer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    scammer.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    scammer.contactInfo.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const getTypeColor = (type: ScammerProfile['type']) => {
+    switch (type) {
+      case 'phone': return '#FF9500';
+      case 'online': return '#007AFF';
+      case 'financial': return '#30D158';
+      default: return '#FF3B30';
+    }
+  };
   
-  const filteredSchemes = scamSchemes.filter(scheme => 
-    scheme.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    scheme.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const getTypeText = (type: ScammerProfile['type']) => {
+    switch (type) {
+      case 'phone': return 'Телефонное мошенничество';
+      case 'online': return 'Интернет-мошенничество';
+      case 'financial': return 'Финансовое мошенничество';
+      default: return 'Другой тип мошенничества';
+    }
+  };
   
   const renderScammerCard = (scammer: ScammerProfile, index: number) => {
-    const itemAnimationValue = useRef(new Animated.Value(0)).current;
+    // Get the unique ID, prioritize _id for MongoDB compatibility
+    const id = scammer._id || scammer.id;
     
-    useEffect(() => {
-      Animated.timing(itemAnimationValue, {
-        toValue: 1,
-        duration: 400,
-        delay: index * 100,
-        useNativeDriver: true,
-      }).start();
-    }, []);
-    
-    const getTypeIcon = (type: ScammerProfile['type']) => {
-      switch (type) {
-        case 'phone': return 'phone';
-        case 'online': return 'computer';
-        case 'financial': return 'attach-money';
-        default: return 'warning';
-      }
-    };
-    
-    const getTypeColor = (type: ScammerProfile['type']) => {
-      switch (type) {
-        case 'phone': return '#FF9500';
-        case 'online': return '#007AFF';
-        case 'financial': return '#30D158';
-        default: return '#FF3B30';
-      }
-    };
-    
-    const getTypeText = (type: ScammerProfile['type']) => {
-      switch (type) {
-        case 'phone': return 'Телефонное мошенничество';
-        case 'online': return 'Интернет-мошенничество';
-        case 'financial': return 'Финансовое мошенничество';
-        default: return 'Другой тип мошенничества';
-      }
-    };
+    // Use the pre-created animation value
+    const itemAnimationValue = id && itemAnimationValues[id] ? itemAnimationValues[id] : new Animated.Value(0);
     
     return (
       <Animated.View
-        key={scammer.id}
+        key={id}
         style={{
           opacity: itemAnimationValue,
           transform: [{ 
@@ -303,19 +343,7 @@ export default function ScammersScreen() {
             
             <Pressable
               style={[styles.reportButton, { backgroundColor: colors.tint + '20' }]}
-              onPress={() => {
-                Alert.alert(
-                  'Сообщить о подозрительной активности',
-                  'Для отправки дополнительной информации об этом мошеннике или для сообщения о новой схеме мошенничества, пожалуйста, обратитесь по номеру 102 или через электронное обращение в полицию.',
-                  [
-                    { text: 'Отмена', style: 'cancel' },
-                    { 
-                      text: 'Позвонить 102',
-                      onPress: () => Linking.openURL('tel:102')
-                    }
-                  ]
-                );
-              }}
+              onPress={() => handleReportScammer(scammer)}
             >
               <MaterialIcons name="flag" size={14} color={colors.tint} />
               <Text style={[styles.reportButtonText, { color: colors.tint }]}>
@@ -329,21 +357,16 @@ export default function ScammersScreen() {
   };
   
   const renderSchemeCard = (scheme: ScamScheme, index: number) => {
-    const itemAnimationValue = useRef(new Animated.Value(0)).current;
-    const [expanded, setExpanded] = useState(false);
+    // Get the unique ID, prioritize _id for MongoDB compatibility
+    const id = scheme._id || scheme.id;
     
-    useEffect(() => {
-      Animated.timing(itemAnimationValue, {
-        toValue: 1,
-        duration: 400,
-        delay: index * 100,
-        useNativeDriver: true,
-      }).start();
-    }, []);
+    // Use the pre-created animation value
+    const itemAnimationValue = id && itemAnimationValues[id] ? itemAnimationValues[id] : new Animated.Value(0);
+    const expanded = id ? expandedCards[id] || false : false;
     
     return (
       <Animated.View
-        key={scheme.id}
+        key={id}
         style={{
           opacity: itemAnimationValue,
           transform: [{ 
@@ -365,7 +388,7 @@ export default function ScammersScreen() {
         >
           <Pressable
             style={styles.schemeHeader}
-            onPress={() => setExpanded(!expanded)}
+            onPress={() => id && toggleCardExpanded(id)}
           >
             <View style={styles.schemeTitleContainer}>
               <Text style={[styles.cardTitle, { color: colors.text }]}>
@@ -392,7 +415,7 @@ export default function ScammersScreen() {
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   Признаки мошенничества:
                 </Text>
-                {scheme.warningSign.map((sign, i) => (
+                {scheme.warningSign && scheme.warningSign.map((sign, i) => (
                   <View key={i} style={styles.bulletPoint}>
                     <MaterialIcons name="error" size={16} color={colors.warning} />
                     <Text style={[styles.bulletText, { color: colors.text }]}>
@@ -406,7 +429,7 @@ export default function ScammersScreen() {
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   Как избежать:
                 </Text>
-                {scheme.howToAvoid.map((tip, i) => (
+                {scheme.howToAvoid && scheme.howToAvoid.map((tip, i) => (
                   <View key={i} style={styles.bulletPoint}>
                     <MaterialIcons name="check-circle" size={16} color={colors.success} />
                     <Text style={[styles.bulletText, { color: colors.text }]}>
@@ -420,7 +443,7 @@ export default function ScammersScreen() {
           
           <Pressable
             style={[styles.expandButton, { borderTopColor: colors.border }]}
-            onPress={() => setExpanded(!expanded)}
+            onPress={() => id && toggleCardExpanded(id)}
           >
             <Text style={[styles.expandButtonText, { color: colors.tint }]}>
               {expanded ? 'Свернуть' : 'Подробнее'}
@@ -448,6 +471,54 @@ export default function ScammersScreen() {
         </Text>
       </View>
     );
+  };
+  
+  const renderLoadingState = () => {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color={colors.tint} />
+        <Text style={[styles.loadingText, { color: colors.text }]}>
+          Загрузка данных...
+        </Text>
+      </View>
+    );
+  };
+  
+  const renderErrorState = () => {
+    return (
+      <View style={styles.errorContainer}>
+        <MaterialIcons name="error-outline" size={64} color="red" />
+        <Text style={[styles.errorText, { color: colors.text }]}>
+          {error}
+        </Text>
+        <Pressable
+          style={[styles.retryButton, { backgroundColor: colors.tint }]}
+          onPress={() => {
+            setActiveTab(activeTab); // This will trigger the useEffect to fetch data again
+          }}
+        >
+          <Text style={styles.retryButtonText}>Повторить</Text>
+        </Pressable>
+      </View>
+    );
+  };
+  
+  // Button handlers instead of modal state
+  const handleReportScammer = (scammer: ScammerProfile) => {
+    router.push('/modals/ReportScammerModal');
+  };
+  
+  const handleReportScheme = () => {
+    router.push('/modals/ReportSchemeModal');
+  };
+  
+  // Handler for the "Report New" button
+  const handleReportNew = () => {
+    if (activeTab === 'schemes') {
+      router.push('/modals/ReportSchemeModal');
+    } else {
+      router.push('/modals/ReportScammerModal');
+    }
   };
 
   return (
@@ -536,37 +607,27 @@ export default function ScammersScreen() {
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
-        {activeTab === 'schemes' && (
-          filteredSchemes.length > 0 
-            ? filteredSchemes.map((scheme, index) => renderSchemeCard(scheme, index))
-            : renderEmptyState()
-        )}
-        
-        {activeTab === 'scammers' && (
-          filteredScammers.length > 0 
-            ? filteredScammers.map((scammer, index) => renderScammerCard(scammer, index))
-            : renderEmptyState()
+        {isLoading ? (
+          renderLoadingState()
+        ) : error ? (
+          renderErrorState()
+        ) : (
+          activeTab === 'schemes' ? (
+            filteredSchemes && filteredSchemes.length > 0 
+              ? filteredSchemes.map((scheme, index) => renderSchemeCard(scheme, index))
+              : renderEmptyState()
+          ) : (
+            filteredScammers && filteredScammers.length > 0 
+              ? filteredScammers.map((scammer, index) => renderScammerCard(scammer, index))
+              : renderEmptyState()
+          )
         )}
       </ScrollView>
       
       <View style={[styles.footer, { backgroundColor: colors.background }]}>
         <Pressable
           style={[styles.reportNewButton, { backgroundColor: colors.tint }]}
-          onPress={() => {
-            Alert.alert(
-              activeTab === 'schemes' 
-                ? 'Сообщить о новой схеме' 
-                : 'Сообщить о мошеннике',
-              'Для подачи заявления о мошенничестве или сообщения о новой схеме обмана, обратитесь в ближайший отдел полиции или позвоните по номеру 102.',
-              [
-                { text: 'Отмена', style: 'cancel' },
-                { 
-                  text: 'Позвонить 102',
-                  onPress: () => Linking.openURL('tel:102')
-                }
-              ]
-            );
-          }}
+          onPress={handleReportNew}
         >
           <MaterialIcons name="add" size={24} color="white" />
           <Text style={styles.reportNewButtonText}>
@@ -800,5 +861,39 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: 16,
     marginLeft: 8,
+  },
+  loadingContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    minHeight: 300,
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+  },
+  errorContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 20,
+    minHeight: 300,
+  },
+  errorText: {
+    marginTop: 16,
+    marginBottom: 24,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  retryButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+  },
+  retryButtonText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 16,
   },
 }); 

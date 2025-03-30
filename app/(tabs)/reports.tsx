@@ -329,7 +329,7 @@ export default function ReportsScreen() {
                   color: colors.text
                 }
               ]}
-              placeholder="Введите ваше ФИО"
+              placeholder="Введите ваше ФИО (необязательно)"
               placeholderTextColor={colors.muted}
               value={newReportFullName}
               onChangeText={setNewReportFullName}
@@ -349,7 +349,7 @@ export default function ReportsScreen() {
                   color: colors.text
                 }
               ]}
-              placeholder="Введите ваш адрес проживания"
+              placeholder="Введите ваш адрес проживания (необязательно)"
               placeholderTextColor={colors.muted}
               value={newReportAddress}
               onChangeText={setNewReportAddress}
@@ -369,7 +369,7 @@ export default function ReportsScreen() {
                   color: colors.text
                 }
               ]}
-              placeholder="Введите ваш ИИН"
+              placeholder="Введите ваш ИИН (необязательно)"
               placeholderTextColor={colors.muted}
               value={newReportIIN}
               onChangeText={setNewReportIIN}
